@@ -1,32 +1,35 @@
-import React, { Component } from 'react'
-import axios from 'axios'
+import React, { Component } from "react";
 
-import PageHeader from '../components/pageheader'
+import PageHeader from "../components/pageheader";
 
-const URL = "http://localhost:3003/api/orders"
+import JazzService from "../Services/JazzApi";
 
+class Orders extends Component {
+  constructor(props) {
+    super(props);
 
-const initialState = {
-  order: {
-    numberOrder: '',
-    date: '',
-    itens: [
+    this.state = {
+      startDate: new Date(),
+      orders: [],
+      isLoading: true,
+      isError: false
+    };
+  }
 
-    ]
-  },
-  startDate: new Date(),
-  list: []
-}
-
-export default class Orders extends Component {
-
-  state = { ...initialState }
-
-  componentWillMount() {
-    axios.get(URL)
+  componentDidMount() {
+    JazzService.getOrders()
       .then(resp => {
-        this.setState({ list: resp.data })
+        this.setState({
+          orders: resp.data,
+          isLoading: false,
+          isError: false
+        });
       })
+      .catch(err => {
+        this.setState({
+          isError: true
+        });
+      });
   }
 
   renderTable() {
@@ -39,53 +42,54 @@ export default class Orders extends Component {
             <th>Itens</th>
           </tr>
         </thead>
-        <tbody>
-          {this.renderRows()}
-        </tbody>
+        <tbody>{this.renderRows()}</tbody>
       </table>
-    )
+    );
   }
 
-  renderItens(order) {
-    return order.itens.map(item => {
+  renderItens(itens) {
+    return itens.map(item => {
       return (
         <table>
           <tbody>
             <tr>
-              <td>
-                Nome: {item.name} // 
-              </td>
-              <td>
-                Quantidade: {item.qtd}
-              </td>
+              <td>Nome: {item.name}</td>
+              <td>Quantidade: {item.qtd}</td>
             </tr>
           </tbody>
         </table>
-
-      )
-    })
+      );
+    });
   }
 
   renderRows() {
-    return this.state.list.map(order => {
-      return (
-        <tr key={order._id}>
-          <td>{order.numberOrder}</td>
-          <td>{order.date}</td>
-          <td>
-            { this.renderItens(order) }
-          </td>
-        </tr>
-      )
-    })
+    const { orders } = this.state;
+
+    return orders.map(order => (
+      <tr key={order._id}>
+        <td>{order.numberOrder}</td>
+        <td>{order.date}</td>
+        <td>{this.renderItens(order.itens)}</td>
+      </tr>
+    ));
   }
 
   render() {
+    const { isLoading, isError } = this.state;
+
     return (
       <div>
-        <PageHeader name="Pedidos" small="Lista"></PageHeader>
-        {this.renderTable()}
+        <PageHeader name="Pedidos" small="orders" />
+        {isError ? (
+          <h3>Ocorreu um erro :c</h3>
+        ) : isLoading ? (
+          <h3>Carregando...</h3>
+        ) : (
+          this.renderTable()
+        )}
       </div>
-    )
+    );
   }
 }
+
+export default Orders;
