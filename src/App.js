@@ -1,16 +1,43 @@
-import React, { Component } from 'react';
-import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
-import '../node_modules/font-awesome/css/font-awesome.min.css'; 
-import Header from '../src/components/menu'
-import Routes from '../src/Routes'
+import React, { Component } from "react";
+import CssBaseline from "@material-ui/core/CssBaseline";
+import Routes from "../src/Routes";
+import { CashierProvider } from "./context/CashierContext";
+import JazzApi from "./Services/JazzApi";
+import { MuiThemeProvider, createMuiTheme } from "@material-ui/core/styles";
+import LinearProgress from "@material-ui/core/LinearProgress";
+
+const theme = createMuiTheme();
 
 class App extends Component {
+  state = {
+    isLoading: true,
+    isCashierOpen: false
+  };
+
+  componentDidMount() {
+    JazzApi.checkCashier().then(resp => {
+      this.setState({
+        isLoading: false,
+        isCashierOpen: resp.data
+      });
+    });
+  }
+
   render() {
+    const { isCashierOpen, isLoading } = this.state;
+
     return (
-      <div className="container">
-          <Header/>
-          <Routes/>
-      </div>
+      <MuiThemeProvider theme={theme}>
+        <CashierProvider value={isCashierOpen}>
+          {isLoading ? (
+            <LinearProgress />
+          ) : (
+            <div className="container">
+              <Routes />
+            </div>
+          )}
+        </CashierProvider>
+      </MuiThemeProvider>
     );
   }
 }

@@ -195,14 +195,12 @@ export default class Associate extends Component {
       <div>
         {isError ? (
           <h3>Ocorreu um erro :c</h3>
-        ) : isLoading ? (
-          <h3>Carregando...</h3>
         ) : (
           <React.Fragment>
             <PageHeader name="Associados" small="Cadastro" />
             {this.renderForm()}
             <PageHeader name="Associados" small="Lista" />
-            {this.renderTable()}
+            {isLoading ? <h3>Carregando...</h3> : this.renderTable()}
           </React.Fragment>
         )}
       </div>
