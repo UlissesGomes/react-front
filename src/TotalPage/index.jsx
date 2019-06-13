@@ -24,6 +24,7 @@ class TotalPage extends React.Component {
           pathname: "/menu",
           state: { shouldReload: true }
         });
+        window.location.reload();
       });
     }
   };

@@ -18,7 +18,10 @@ const initialState = {
 };
 
 export default class Menu extends Component {
-  state = { ...initialState };
+  state = {
+    ...initialState,
+    shouldReload: this.props.location.state.shouldReload
+  };
 
   componentDidMount() {
     JazzApi.getMenuItens().then(resp => {
@@ -37,12 +40,20 @@ export default class Menu extends Component {
     if (method === "post") {
       JazzApi.createMenuItem(item).then(resp => {
         const list = this.getUpdateList(resp.data);
-        this.setState({ item: initialState.item, list });
+        this.setState({ item: initialState.item, list }, () => {
+          JazzApi.getMenuItens().then(resp => {
+            this.setState({ list: resp.data });
+          });
+        });
       });
     } else {
       JazzApi.updateMenuItem(item).then(resp => {
         const list = this.getUpdateList(resp.data);
-        this.setState({ item: initialState.item, list });
+        this.setState({ item: initialState.item, list }, () => {
+          JazzApi.getMenuItens().then(resp => {
+            this.setState({ list: resp.data });
+          });
+        });
       });
     }
   }

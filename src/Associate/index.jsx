@@ -6,7 +6,7 @@ import axios from "axios";
 
 import "react-datepicker/dist/react-datepicker.css";
 
-import JazzService from "../Services/JazzApi";
+import JazzService, { URL } from "../Services/JazzApi";
 
 const initialState = {
   associate: {
@@ -41,10 +41,20 @@ export default class Associate extends Component {
     const associate = this.state.associate;
     associate.associateDate = this.formatDate(this.state.startDate);
     const method = associate._id ? "put" : "post";
-    const url = associate._id ? `${URL}/${associate._id}` : URL;
+    const url = associate._id
+      ? `${URL}/associate/${associate._id}`
+      : `${URL}/associate/`;
     axios[method](url, associate).then(resp => {
       const list = this.getUpdateList(resp.data);
-      this.setState({ associate: initialState.associate, list });
+      this.setState({ associate: initialState.associate, list }, () => {
+        JazzService.getAssociate()
+          .then(resp => {
+            this.setState({ list: resp.data, isLoading: false });
+          })
+          .catch(err => {
+            this.setState({ isError: true });
+          });
+      });
     });
   };
 
@@ -180,7 +190,7 @@ export default class Associate extends Component {
 
         <Grid cols="12 9 10">
           <br />
-          <button className="btn btn-primary" onClick={e => this.save(e)}>
+          <button className="btn btn-primary" onClick={this.save}>
             <i className="fa fa-plus"> ADICIONAR</i>
           </button>
         </Grid>

@@ -1,12 +1,13 @@
 import axios from "axios";
 
-const URL = "http://192.168.0.9:8080";
+export const URL = "http://192.168.0.5:8080";
 
 class JazzApi {
   openCashier = () => axios.post(`${URL}/cashier/open`);
   closeCashier = () => axios.post(`${URL}/cashier/close`);
   getOrders = () => axios.get(`${URL}/cashier/orders/false`);
   closeOrder = numberOrder => axios.put(`${URL}/cashier/order/${numberOrder}`);
+  revertOrder = numberOrder => axios.put(`${URL}/cashier/order/${numberOrder}`);
   getAssociate = () => axios.get(`${URL}/associate`);
   removeAssociate = id => axios.delete(`${URL}/associate/${id}`);
   checkCashier = () => axios.get(`${URL}/cashier/exists`);

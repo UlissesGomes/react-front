@@ -24,10 +24,12 @@ class Orders extends Component {
 
     this.state = {
       search: "",
+      searchPaids: "",
       startDate: new Date(),
       orders: [],
       paidOrders: [],
       searchedOrders: [],
+      searchedPaidOrders: [],
       isLoading: true,
       isError: false,
       modalOrder: null,
@@ -55,6 +57,7 @@ class Orders extends Component {
       .then(resp => {
         this.setState({
           paidOrders: resp.data,
+          searchedPaidOrders: resp.data,
           isLoading: false,
           isError: false
         });
@@ -98,7 +101,7 @@ class Orders extends Component {
     const { paidOrders } = this.state;
 
     return paidOrders.map(order => (
-      <tr key={order.numberOrder}>
+      <tr key={order.numberOrder} onClick={() => this.openModal(order)}>
         <td>{order.numberOrder}</td>
         <td>{`R$ ${order.totalOrder}`}</td>
       </tr>
@@ -158,12 +161,75 @@ class Orders extends Component {
     });
 
     JazzApi.closeOrder(modalOrder.numberOrder).then(resp => {
-      this.setState(prevState => ({
-        orders: prevState.orders.filter(
-          item => item.numberOrder !== modalOrder.numberOrder
-        ),
-        paidOrders: [...prevState.paidOrders, modalOrder]
-      }));
+      JazzService.getOrders()
+        .then(resp => {
+          this.setState({
+            orders: resp.data,
+            searchedOrders: resp.data,
+            isLoading: false,
+            isError: false
+          });
+        })
+        .catch(err => {
+          this.setState({
+            isError: true
+          });
+        });
+
+      JazzService.getOrdersByValueTrue()
+        .then(resp => {
+          this.setState({
+            paidOrders: resp.data,
+            searchedPaidOrders: resp.data,
+            isLoading: false,
+            isError: false
+          });
+        })
+        .catch(err => {
+          this.setState({
+            isError: true
+          });
+        });
+    });
+  };
+
+  revertOrder = () => {
+    const { modalOrder } = this.state;
+
+    this.setState({
+      isModalOpen: false
+    });
+
+    JazzApi.revertOrder(modalOrder.numberOrder).then(resp => {
+      JazzService.getOrders()
+        .then(resp => {
+          this.setState({
+            orders: resp.data,
+            searchedOrders: resp.data,
+            isLoading: false,
+            isError: false
+          });
+        })
+        .catch(err => {
+          this.setState({
+            isError: true
+          });
+        });
+
+      JazzService.getOrdersByValueTrue()
+        .then(resp => {
+          this.setState({
+            paidOrders: resp.data,
+            searchedPaidOrders: resp.data,
+            isLoading: false,
+            isError: false
+          });
+        })
+        .catch(err => {
+          this.setState({
+            isError: true
+          });
+        });
     });
   };
 
@@ -187,6 +253,7 @@ class Orders extends Component {
       .then(resp => {
         this.setState({
           paidOrders: resp.data,
+          searchedPaidOrders: resp.data,
           isLoading: false,
           isError: false
         });
@@ -199,7 +266,14 @@ class Orders extends Component {
   };
 
   render() {
-    const { isLoading, isError, isModalOpen, modalOrder, search } = this.state;
+    const {
+      isLoading,
+      isError,
+      isModalOpen,
+      modalOrder,
+      search,
+      searchPaids
+    } = this.state;
 
     return (
       <div>
@@ -208,67 +282,73 @@ class Orders extends Component {
             if (isOpen) {
               return (
                 <React.Fragment>
-                  <input
-                    className="form-control"
-                    type="text"
-                    placeholder="Pesquiesar pedido"
-                    aria-label="Search"
-                    value={search}
-                    onChange={e => {
-                      this.setState(
-                        {
-                          orders: this.state.searchedOrders,
-                          search: e.target.value
-                        },
-                        () => {
-                          if (this.state.search !== "") {
-                            this.setState({
-                              orders: this.state.orders.filter(
-                                item => item.numberOrder === this.state.search
-                              )
-                            });
-                          } else {
-                            this.setState({
-                              orders: this.state.searchedOrders
-                            });
-                          }
-                        }
-                      );
-                    }}
-                  />
-                  <div style={{ marginTop: 10 }}>
-                    <button
-                      onClick={() => this.setState({ search: "" })}
-                      type="button"
-                      class="btn btn-primary"
-                    >
-                      Limpar pesquisa
-                    </button>
-                    <button
-                      style={{ marginLeft: 10 }}
-                      onClick={this.reFetch}
-                      type="button"
-                      class="btn btn-primary"
-                    >
-                      Atualizar pedidos
-                    </button>
-                    <button
-                      style={{ marginLeft: 10 }}
-                      onClick={this.closeCashier}
-                      type="button"
-                      class="btn btn-primary"
-                    >
-                      Fechar caixa
-                    </button>
-                  </div>
-
                   <PageHeader name="Pedidos em andamento" small="" />
                   {isError ? (
                     <h3>Ocorreu um erro :c</h3>
                   ) : isLoading ? (
                     <h3>Carregando...</h3>
                   ) : (
-                    this.renderTable()
+                    <React.Fragment>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Pesquiesar pedido"
+                        aria-label="Search"
+                        value={search}
+                        onChange={e => {
+                          this.setState(
+                            {
+                              orders: this.state.searchedOrders,
+                              search: e.target.value
+                            },
+                            () => {
+                              console.log(this.state);
+
+                              if (this.state.search !== "") {
+                                this.setState({
+                                  orders: this.state.orders.filter(
+                                    item =>
+                                      item.numberOrder === this.state.search
+                                  )
+                                });
+                              } else {
+                                this.setState({
+                                  orders: this.state.orders
+                                });
+                              }
+                            }
+                          );
+                        }}
+                      />
+                      <div style={{ marginTop: 10 }}>
+                        <button
+                          onClick={() =>
+                            this.setState({ search: "" }, () => this.reFetch())
+                          }
+                          type="button"
+                          class="btn btn-primary"
+                        >
+                          Limpar pesquisa
+                        </button>
+                        <button
+                          style={{ marginLeft: 10 }}
+                          onClick={this.reFetch}
+                          type="button"
+                          class="btn btn-primary"
+                        >
+                          Atualizar pedidos
+                        </button>
+                        <button
+                          style={{ marginLeft: 10 }}
+                          onClick={this.closeCashier}
+                          type="button"
+                          class="btn btn-primary"
+                        >
+                          Fechar caixa
+                        </button>
+                      </div>
+                      {this.renderTable()}
+                    </React.Fragment>
                   )}
 
                   <PageHeader name="Pedidos pagos" small="orders" />
@@ -277,7 +357,52 @@ class Orders extends Component {
                   ) : isLoading ? (
                     <h3>Carregando...</h3>
                   ) : (
-                    this.renderPaidTable()
+                    <React.Fragment>
+                      <input
+                        className="form-control"
+                        type="text"
+                        placeholder="Pesquisar pedidos pagos"
+                        aria-label="Search"
+                        value={searchPaids}
+                        onChange={e => {
+                          this.setState(
+                            {
+                              paidOrders: this.state.searchedPaidOrders,
+                              searchPaids: e.target.value
+                            },
+                            () => {
+                              if (this.state.searchPaids !== "") {
+                                this.setState({
+                                  paidOrders: this.state.paidOrders.filter(
+                                    item =>
+                                      item.numberOrder ===
+                                      this.state.searchPaids
+                                  )
+                                });
+                              } else {
+                                this.setState({
+                                  paidOrders: this.state.paidOrders
+                                });
+                              }
+                            }
+                          );
+                        }}
+                      />
+                      <div style={{ marginTop: 10 }}>
+                        <button
+                          onClick={() =>
+                            this.setState({ searchPaids: "" }, () =>
+                              this.reFetch()
+                            )
+                          }
+                          type="button"
+                          class="btn btn-primary"
+                        >
+                          Limpar pesquisa de pagos
+                        </button>
+                      </div>
+                      {this.renderPaidTable()}
+                    </React.Fragment>
                   )}
 
                   <Modal
@@ -296,13 +421,23 @@ class Orders extends Component {
                       </thead>
                       <tbody>{this.renderModalRows()}</tbody>
                     </table>
-                    <button
-                      onClick={this.closeOrder}
-                      type="button"
-                      class="btn btn-primary"
-                    >
-                      Marcar como pago
-                    </button>
+                    {modalOrder && modalOrder.valid ? (
+                      <button
+                        onClick={this.revertOrder}
+                        type="button"
+                        class="btn btn-primary"
+                      >
+                        Reverter
+                      </button>
+                    ) : (
+                      <button
+                        onClick={this.closeOrder}
+                        type="button"
+                        class="btn btn-primary"
+                      >
+                        Marcar como pago
+                      </button>
+                    )}
                   </Modal>
                 </React.Fragment>
               );
