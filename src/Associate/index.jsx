@@ -63,9 +63,8 @@ export default class Associate extends Component {
   };
 
   remove = associate => {
-    JazzService.removeAssociate(associate._id).then(resp => {
-      const list = this.getUpdateList(associate, false);
-      this.setState({ list });
+    JazzService.removeAssociate(associate.id).then(resp => {
+      this.componentDidMount()
     });
   };
 

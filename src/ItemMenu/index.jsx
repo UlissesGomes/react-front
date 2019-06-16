@@ -20,7 +20,7 @@ const initialState = {
 export default class Menu extends Component {
   state = {
     ...initialState,
-    shouldReload: this.props.location.state.shouldReload
+    //shouldReload: this.props.location.state.shouldReload
   };
 
   componentDidMount() {
@@ -63,9 +63,9 @@ export default class Menu extends Component {
   }
 
   remove(item) {
-    JazzApi.removeMenuItem(item._id).then(resp => {
-      const list = this.getUpdateList(item, false);
-      this.setState({ list });
+    console.log(item)
+    JazzApi.removeMenuItem(item.id).then(resp => {
+      this.componentDidMount()
     });
   }
 
@@ -119,8 +119,7 @@ export default class Menu extends Component {
             <label> -- </label>
             <button
               className="btn btn-danger ml-5"
-              onClick={() => this.remove(item)}
-            >
+              onClick={() => this.remove(item)}>
               <i className="fa fa-trash" />
             </button>
           </td>

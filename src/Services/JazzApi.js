@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const URL = "http://192.168.0.5:8080";
+export const URL = "http://192.168.11.4:8080";
 
 class JazzApi {
   openCashier = () => axios.post(`${URL}/cashier/open`);
