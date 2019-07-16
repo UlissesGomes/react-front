@@ -4,15 +4,14 @@ import Grid from "../components/grid";
 import PageHeader from "../components/pageheader";
 import JazzApi from "../Services/JazzApi";
 
-const URL = "http://localhost:3003/api/itens";
-
 const initialState = {
   item: {
     name: "",
     description: "",
     priceDebit: "",
     priceCash: "",
-    type: ""
+    type: "",
+    available: true
   },
   list: []
 };
@@ -69,6 +68,12 @@ export default class Menu extends Component {
     });
   }
 
+  makeUnavailable(item) {
+    JazzApi.makeAvailable(item.id).then(resp => {
+      this.componentDidMount()
+    })
+  }
+
   getUpdateList(item, add = true) {
     const list = this.state.list.filter(i => i._id !== item._id);
     if (add) list.unshift(item);
@@ -121,6 +126,12 @@ export default class Menu extends Component {
               className="btn btn-danger ml-5"
               onClick={() => this.remove(item)}>
               <i className="fa fa-trash" />
+            </button>
+            <label> -- </label>
+            <button
+              className="btn"
+              onClick={() => this.makeUnavailable(item)}>
+              Marcar como indisponível
             </button>
           </td>
         </tr>
